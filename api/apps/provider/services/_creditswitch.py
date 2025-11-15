@@ -12,15 +12,15 @@ logger = logging.getLogger(__name__)
 
 """
 ******************************************
-********* Provider: SIM Server  **********
+********* Provider: Creditswitch  **********
 ******************************************
 
-This service is for Sim Server  Provider
+This service is for Creditswitch Provider
 to be able to send Airtime and Data purchase 
 to the provider
 
 """
-class SimServerProviderService():
+class CreditswitchProviderService():
     def __init__(self, receiver_phone, amount, data_code):
         self.url = os.environ.get("SIM_SERVER_PROVIDER_URL")
         self.receiver_phone = receiver_phone

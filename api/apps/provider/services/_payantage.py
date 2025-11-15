@@ -19,13 +19,29 @@ to the provider
 
 """
 class PayantageProviderService(BaseProvider):
-    def __init__(self, provider_account, receiver_phone=None, amount=None, tariff_type_id="1"):
+    def __init__(self, provider_account, receiver_phone=None, amount=None, product_code="", tariff_type_id="1"):
         super().__init__(provider_account)
         self.password = self.get_config_value('password', '')
         self.auth_token = self.get_config_value('auth_token', '')
         self.receiver_phone = receiver_phone
         self.amount = amount
+        self.product_code = product_code
         self.tariff_type_id = tariff_type_id
+
+    #get the network from product code  
+    def get_network_from_product_code(self):
+        if self.product_code  in ["MTNVTU", "MTNDATA"]:
+            return "MTN"
+        elif self.product_code in ["GLOVTU", "GLODATA"]:
+            return "GLO"
+        elif self.product_code in ["AIRTELVTU", "AIRTELDATA"]:
+            return "AIRTEL"
+        elif self.product_code in ["9MOBILEVTU", "9MOBILEDATA"]:
+            return "9MOBILE"
+        else:
+            return None
+
+
 
     def send_request(self):
         """Send request to Payantage provider."""

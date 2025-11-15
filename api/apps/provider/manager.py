@@ -80,7 +80,7 @@ class ProviderServiceManager:
             # SME Data products
             elif product_code in ["MTNSMEDATA", "AIRTELSMEDATA", "GLOSMEDATA", "9MOBILESMEDATA"]:
                 if provider_code == "PAYANTAGE":
-                    service = PayantageProviderService(provider_account, receiver_phone, amount, tariff_type_id)
+                    service = PayantageProviderService(provider_account, receiver_phone, amount, product_code tariff_type_id)
                     return service.send_request()
             
             # No match found
