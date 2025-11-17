@@ -11,6 +11,7 @@ from apps.provider.services import (
     GloProviderService,
     EtisalatProviderService,
     PayvantageProviderService,
+    CreditswitchProviderService,
 )
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,9 @@ class ProviderServiceManager:
                 elif provider_code == "PAYVANTAGE":
                     service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
+                elif provider_code == "CREDITSWITCH":
+                    service = CreditswitchProviderService(provider_account, receiver_phone, amount, product_code, data_code)
+                    return service.send_request()
             
             # GLO products
             elif product_code in ["GLOVTU", "GLODATA"]:
@@ -57,6 +61,9 @@ class ProviderServiceManager:
                     return service.send_request()
                 elif provider_code == "PAYVANTAGE":
                     service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
+                    return service.send_request()
+                elif provider_code == "CREDITSWITCH":
+                    service = CreditswitchProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # Airtel products
@@ -67,6 +74,9 @@ class ProviderServiceManager:
                 elif provider_code == "PAYVANTAGE":
                     service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
+                elif provider_code == "CREDITSWITCH":
+                    service = CreditswitchProviderService(provider_account, receiver_phone, amount, product_code, data_code)
+                    return service.send_request()
             
             # 9Mobile products
             elif product_code in ["9MOBILEVTU", "9MOBILEDATA"]:
@@ -76,11 +86,17 @@ class ProviderServiceManager:
                 elif provider_code == "PAYVANTAGE":
                     service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
+                elif provider_code == "CREDITSWITCH":
+                    service = CreditswitchProviderService(provider_account, receiver_phone, amount, product_code, data_code)
+                    return service.send_request()
             
             # SME Data products
             elif product_code in ["MTNSMEDATA", "AIRTELSMEDATA", "GLOSMEDATA", "9MOBILESMEDATA"]:
                 if provider_code == "PAYVANTAGE":
                     service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
+                    return service.send_request()
+                elif provider_code == "CREDITSWITCH":
+                    service = CreditswitchProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # No match found
