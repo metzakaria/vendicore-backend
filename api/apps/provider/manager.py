@@ -10,7 +10,7 @@ from apps.provider.services import (
     AirtelProviderService,
     GloProviderService,
     EtisalatProviderService,
-    PayantageProviderService,
+    PayvantageProviderService,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,8 +46,8 @@ class ProviderServiceManager:
                 if provider_code == "MTN":
                     service = MTNNProviderService(provider_account, receiver_phone, amount, tariff_type_id)
                     return service.send_request()
-                elif provider_code == "PAYANTAGE":
-                    service = PayantageProviderService(provider_account, receiver_phone, amount, tariff_type_id)
+                elif provider_code == "PAYVANTAGE":
+                    service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # GLO products
@@ -55,8 +55,8 @@ class ProviderServiceManager:
                 if provider_code == "GLO":
                     service = GloProviderService(provider_account, receiver_phone, amount, data_code, product_code)
                     return service.send_request()
-                elif provider_code == "PAYANTAGE":
-                    service = PayantageProviderService(provider_account, receiver_phone, amount, tariff_type_id)
+                elif provider_code == "PAYVANTAGE":
+                    service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # Airtel products
@@ -64,8 +64,8 @@ class ProviderServiceManager:
                 if provider_code == "AIRTEL":
                     service = AirtelProviderService(provider_account, receiver_phone, amount, product_code)
                     return service.send_request()
-                elif provider_code == "PAYANTAGE":
-                    service = PayantageProviderService(provider_account, receiver_phone, amount, tariff_type_id)
+                elif provider_code == "PAYVANTAGE":
+                    service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # 9Mobile products
@@ -73,14 +73,14 @@ class ProviderServiceManager:
                 if provider_code == "9MOBILE":
                     service = EtisalatProviderService(provider_account, receiver_phone, amount, product_code)
                     return service.send_request()
-                elif provider_code == "PAYANTAGE":
-                    service = PayantageProviderService(provider_account, receiver_phone, amount, tariff_type_id)
+                elif provider_code == "PAYVANTAGE":
+                    service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # SME Data products
             elif product_code in ["MTNSMEDATA", "AIRTELSMEDATA", "GLOSMEDATA", "9MOBILESMEDATA"]:
-                if provider_code == "PAYANTAGE":
-                    service = PayantageProviderService(provider_account, receiver_phone, amount, product_code tariff_type_id)
+                if provider_code == "PAYVANTAGE":
+                    service = PayvantageProviderService(provider_account, receiver_phone, amount, product_code, data_code)
                     return service.send_request()
             
             # No match found
