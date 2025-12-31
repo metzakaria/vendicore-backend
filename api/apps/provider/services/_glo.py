@@ -1,9 +1,9 @@
-import requests
-import xmltodict
 import logging
 import re
+import requests
 
 from apps.provider.base import BaseProvider
+from config.response_codes import SUCCESS, INVALID_MSISDN, PENDING, FAILED, NOT_IMPLEMENTED, RESPONSE_MESSAGES
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ to the  provider
 
 """
 class GloProviderService(BaseProvider):
-    def __init__(self, provider_account, receiver_phone=None, amount=None, data_code="", product_code="GLOVTU"):
+    def __init__(self, provider_account, merchant_ref=None, receiver_phone=None, amount=None, product_code=None, data_code=None):
         super().__init__(provider_account)
         self.url = "http://41.203.65.10:8913/topupservice/service?wsdl"
         self.userId = self.get_config_value('user_id', '')
@@ -30,7 +30,11 @@ class GloProviderService(BaseProvider):
         self.amount = amount
         self.data_code = data_code
         self.product_code = product_code
+        self.merchant_ref = merchant_ref
 
+    # ------------------------------------------------------------------------
+    # Main Methods
+    # ------------------------------------------------------------------------
     def send_request(self):
         """Send request to GLO provider."""
         response = {}
@@ -40,16 +44,16 @@ class GloProviderService(BaseProvider):
             header = {
                 "Content-Type": "text/xml"
             }
-            logger.info(f"RAW GLO REQUEST PAYLOAD:::{payload} :::: HEADER::{header}")
-            resp = requests.post(
-                self.url,
-                data=payload,
-                headers=header,
-                verify=self.verify_ssl,
-                timeout=self.timeout
-            ).content
-            logger.info(f"RAW GLO RESPONSE:::{resp}")
-            json_resp = xmltodict.parse(resp)
+            
+            json_resp = self._send_xml(self.url, payload, header, log_prefix="GLO")
+            
+            if json_resp is None:
+                response["responseCode"] = PENDING
+                response["provider_ref"] = None
+                response["responseMessage"] = f"Request timeout after {self.timeout} seconds"
+                response["provider_avail_bal"] = "0"
+                return response
+
             logger.info(f"JSON FORMATTED GLO RESPONSE :::{json_resp}")
 
             body = json_resp["soap:Envelope"]["soap:Body"]["ns2:requestTopupResponse"]["return"]
@@ -59,20 +63,15 @@ class GloProviderService(BaseProvider):
             response["provider_avail_bal"] = body["senderPrincipal"]["accounts"]["account"]["balance"]["value"]
             
             if body["resultCode"] == "0":
-                response["responseCode"] = "00"
+                response["responseCode"] = SUCCESS
+                response["responseMessage"] = RESPONSE_MESSAGES[SUCCESS]
             elif body["resultCode"] == "94":  # Invalid phone number
-                response["responseCode"] = "08"
-                response["responseMessage"] = "Invalid MSISDN"
+                response["responseCode"] = INVALID_MSISDN
+                response["responseMessage"] = RESPONSE_MESSAGES[INVALID_MSISDN]
                 
-        except requests.Timeout as e:
-            logger.error(f"FAILED GLO REQUEST TIMEOUT:: REASON::{e}")
-            response["responseCode"] = "80"
-            response["provider_ref"] = None
-            response["responseMessage"] = f"Request timeout after {self.timeout} seconds"
-            response["provider_avail_bal"] = "0"
         except Exception as e:
             logger.error(f"FAILED GLO REQUEST:, REASON::{e}", exc_info=True)
-            response["responseCode"] = "90"
+            response["responseCode"] = FAILED
             response["provider_ref"] = None
             response["responseMessage"] = str(e)
             response["provider_avail_bal"] = "0"
@@ -247,8 +246,17 @@ class GloProviderService(BaseProvider):
         """Requery transaction status from GLO provider."""
         # TODO: Implement requery logic for GLO
         return {
-            "responseCode": "99",
-            "responseMessage": "Requery not implemented",
+            "responseCode": NOT_IMPLEMENTED,
+            "responseMessage": RESPONSE_MESSAGES[NOT_IMPLEMENTED],
             "provider_ref": None,
             "provider_avail_bal": "0"
+        }
+
+    def get_balance(self):
+        """Get balance from GLO provider."""
+        # TODO: Implement balance query logic for GLO
+        return {
+            "responseCode": NOT_IMPLEMENTED,
+            "provider_avail_bal": "0",
+            "responseMessage": "Balance query not implemented"
         }

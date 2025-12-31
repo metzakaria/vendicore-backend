@@ -4,15 +4,18 @@ from celery import Celery
 from celery.signals import setup_logging  # noqa
 from . import settings
 
+
 # set the default Django settings module for the 'celery' program.
 # this is also used in manage.py
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 app = Celery('config')
 
+
 app.add_defaults({
     'CELERYD_HIJACK_ROOT_LOGGER': False,
 })
 app.config_from_object('django.conf:settings', namespace='CELERY')
+
 
 @setup_logging.connect
 def setup_celery_logging(**kwargs):  

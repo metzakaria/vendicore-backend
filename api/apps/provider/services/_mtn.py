@@ -1,9 +1,8 @@
-import requests
-import xmltodict
 import logging
-import random
+import requests
 
 from apps.provider.base import BaseProvider
+from config.response_codes import SUCCESS, INVALID_MSISDN, PENDING, FAILED, NOT_IMPLEMENTED, RESPONSE_MESSAGES
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ to the provider
 
 """
 class MTNNProviderService(BaseProvider):
-    def __init__(self, provider_account, receiver_phone=None, amount=None, tariff_type_id="1"):
+    def __init__(self, provider_account, merchant_ref=None, receiver_phone=None, amount=None, product_code=None, data_code=None):
         super().__init__(provider_account)
         self.url = "https://ershostif.mtn.ng/axis2/services/HostIFService"
         username = self.get_config_value('username', '')
@@ -27,13 +26,19 @@ class MTNNProviderService(BaseProvider):
         self.auth_token = f"{username}:{password}"
         self.receiver_phone = receiver_phone
         self.amount = amount
-        self.tariff_type_id = tariff_type_id
+        self.product_code = product_code
+        self.data_code = data_code if "DATA" in product_code else "1"
+        self.merchant_ref = merchant_ref
 
+
+    # ------------------------------------------------------------------------
+    # Main Methods
+    # ------------------------------------------------------------------------
     def send_request(self):
         """Send request to MTN provider."""
         response = {}
         try:
-            payload = f'''<?xml version="1.0" encoding="UTF-8" standalone="no"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://hostif.vtm.prism.co.za/xsd"><soapenv:Header/><soapenv:Body><xsd:vend><xsd:origMsisdn>{self.vend_sim}</xsd:origMsisdn><xsd:destMsisdn>{self.receiver_phone}</xsd:destMsisdn><xsd:amount>{self.amount}</xsd:amount><xsd:sequence>{self.generate_sequence()}</xsd:sequence><xsd:tariffTypeId>{self.tariff_type_id}</xsd:tariffTypeId><xsd:serviceproviderId>1</xsd:serviceproviderId></xsd:vend></soapenv:Body></soapenv:Envelope>'''
+            payload = f'''<?xml version="1.0" encoding="UTF-8" standalone="no"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://hostif.vtm.prism.co.za/xsd"><soapenv:Header/><soapenv:Body><xsd:vend><xsd:origMsisdn>{self.vend_sim}</xsd:origMsisdn><xsd:destMsisdn>{self.receiver_phone}</xsd:destMsisdn><xsd:amount>{self.amount}</xsd:amount><xsd:sequence>{self.merchant_ref}</xsd:sequence><xsd:tariffTypeId>{self.data_code}</xsd:tariffTypeId><xsd:serviceproviderId>1</xsd:serviceproviderId></xsd:vend></soapenv:Body></soapenv:Envelope>'''
             
             header = {
                 "Authorization": f"Basic {self.encode_base64(self.auth_token)}",
@@ -42,17 +47,16 @@ class MTNNProviderService(BaseProvider):
                 "Content-length": str(len(payload)),
                 "charset": "UTF-8"
             }
-            logger.info(f"RAW MTNN REQUEST PAYLOAD:::{payload}")
             
-            resp = requests.post(
-                self.url, 
-                data=payload, 
-                headers=header, 
-                verify=self.verify_ssl, 
-                timeout=self.timeout
-            ).content
-            logger.info(f"RAW MTNN RESPONSE:::{resp}")
-            json_resp = xmltodict.parse(resp)
+            json_resp = self._send_xml(self.url, payload, header, log_prefix="MTNN")
+            
+            if json_resp is None:
+                response["responseCode"] = PENDING
+                response["provider_ref"] = None
+                response["responseMessage"] = f"Request timeout after {self.timeout} seconds"
+                response["provider_avail_bal"] = "0"
+                return response
+
             logger.info(f"JSON FORMATTED MTNN RESPONSE :::{json_resp}")
 
             body = json_resp["SOAP-ENV:Envelope"]["SOAP-ENV:Body"]["xsd:vendResponse"]
@@ -65,19 +69,15 @@ class MTNNProviderService(BaseProvider):
             response["provider_avail_bal"] = body.get("xsd:origBalance", "0")
             
             if body["xsd:statusId"] == "0":
-                response["responseCode"] = "00"
+                response["responseCode"] = SUCCESS
+                response["responseMessage"] = RESPONSE_MESSAGES[SUCCESS]
             elif body["xsd:statusId"] in ["1004", "202"]:  # Invalid phone number
-                response["responseCode"] = "08"
-                response["responseMessage"] = "Invalid MSISDN"
+                response["responseCode"] = INVALID_MSISDN
+                response["responseMessage"] = RESPONSE_MESSAGES[INVALID_MSISDN]
                 
-        except requests.Timeout as e:
-            logger.error(f"FAILED MTNN REQUEST TIMEOUT:: REASON::{e}")
-            response["responseCode"] = "80"
-            response["provider_ref"] = None
-            response["responseMessage"] = f"Request timeout after {self.timeout} seconds"
         except Exception as e:
             logger.error(f"FAILED MTNN REQUEST:, REASON::{e}", exc_info=True)
-            response["responseCode"] = "90"
+            response["responseCode"] = FAILED
             response["provider_ref"] = None
             response["responseMessage"] = str(e)
             response["provider_avail_bal"] = "0"
@@ -88,10 +88,19 @@ class MTNNProviderService(BaseProvider):
         """Requery transaction status from MTN provider."""
         # TODO: Implement requery logic for MTN
         return {
-            "responseCode": "99",
-            "responseMessage": "Requery not implemented",
+            "responseCode": NOT_IMPLEMENTED,
+            "responseMessage": RESPONSE_MESSAGES[NOT_IMPLEMENTED],
             "provider_ref": None,
             "provider_avail_bal": "0"
+        }
+
+    def get_balance(self):
+        """Get balance from MTN provider."""
+        # TODO: Implement balance query logic for MTN
+        return {
+            "responseCode": NOT_IMPLEMENTED,
+            "provider_avail_bal": "0",
+            "responseMessage": "Balance query not implemented"
         }
 
 

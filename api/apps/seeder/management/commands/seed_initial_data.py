@@ -12,25 +12,38 @@ PROVIDER_CONFIG_SCHEMAS = {
     "MTN": {
         "username": {"type": "string", "required": True, "description": "Username for MTN API"},
         "password": {"type": "string", "required": True, "description": "Password for MTN API"},
+        "verify_ssl": {"type": "boolean", "required": True, "description": "Verify SSL for MTN API"},
     },
     "AIRTEL": {
         "login_pin": {"type": "string", "required": True, "description": "Login PIN for Airtel API"},
+        "verify_ssl": {"type": "boolean", "required": True, "description": "Verify SSL for Airtel API"},
+        "login_id": {"type": "string", "required": True, "description": "Login ID for Airtel API"},
+        "password": {"type": "string", "required": True, "description": "Password for Airtel API"},
     },
     "GLO": {
         "user_id": {"type": "string", "required": True, "description": "User ID for GLO API"},
         "password": {"type": "string", "required": True, "description": "Password for GLO API"},
         "reseller_id": {"type": "string", "required": True, "description": "Reseller ID for GLO API"},
         "client_id": {"type": "string", "required": True, "description": "Client ID for GLO API"},
+        "verify_ssl": {"type": "boolean", "required": True, "description": "Verify SSL for GLO API"},
     },
     "9MOBILE": {
         "username": {"type": "string", "required": True, "description": "Username for 9Mobile API"},
         "password": {"type": "string", "required": True, "description": "Password for 9Mobile API"},
         "auth_key": {"type": "string", "required": True, "description": "Authentication key for 9Mobile API"},
         "auth_token": {"type": "string", "required": True, "description": "Authentication token for 9Mobile API"},
+        "verify_ssl": {"type": "boolean", "required": True, "description": "Verify SSL for 9Mobile API"},
     },
-    "PAYANTAGE": {
-        "password": {"type": "string", "required": True, "description": "Password for Payantage API"},
-        "auth_token": {"type": "string", "required": True, "description": "Authentication token for Payantage API"},
+    "PAYVANTAGE": {
+        "api_key": {"type": "string", "required": True, "description": "Authentication api key for payvantage API"}, 
+        "client_id": {"type": "string", "required": True, "description": "client ID  for payvantage API"},
+        "verify_ssl": {"type": "boolean", "required": True, "description": "Verify SSL for payvantage API"},
+    },
+    "CREDITSWITCH": {
+        "login_id": {"type": "string", "required": True, "description": "Login ID for CreditSwitch API"},
+        "public_key": {"type": "string", "required": True, "description": "Public key for CreditSwitch API"},
+        "private_key": {"type": "string", "required": True, "description": "Private key for CreditSwitch API"},
+        "verify_ssl": {"type": "boolean", "required": True, "description": "Verify SSL for CreditSwitch API"},
     },
 }
 
@@ -39,25 +52,38 @@ PROVIDER_DEFAULT_CONFIGS = {
     "MTN": {
         "username": "",  # Set actual username
         "password": "",  # Set actual password
+        "verify_ssl": False,  # Set actual verify SSL
     },
     "AIRTEL": {
         "login_pin": "",  # Set actual PIN
+        "login_id": "",  # Set actual Login ID
+        "password": "",  # Set actual Password
+        "verify_ssl": False,  # Set actual verify SSL
     },
     "GLO": {
         "user_id": "",  # Set actual user ID
         "password": "",  # Set actual password
         "reseller_id": "",  # Set actual reseller ID
         "client_id": "",  # Set actual client ID
+        "verify_ssl": False,  # Set actual verify SSL
     },
     "9MOBILE": {
         "username": "",  # Set actual username
         "password": "",  # Set actual password
         "auth_key": "",  # Set actual auth key
         "auth_token": "",  # Set actual auth token
+        "verify_ssl": False,  # Set actual verify SSL
     },
-    "PAYANTAGE": {
-        "password": "",  # Set actual password
-        "auth_token": "",  # Set actual token
+    "PAYVANTAGE": {
+        "api_key": "",  # Set actual password
+        "client_id": "",  # Set actual token
+        "verify_ssl": False,  # Set actual verify SSL
+    },
+    "CREDITSWITCH": {
+        "login_id": "",  # Set actual login ID
+        "public_key": "",  # Set actual public key
+        "private_key": "",  # Set actual private key
+        "verify_ssl": False,  # Set actual verify SSL
     },
 }
 
@@ -66,6 +92,8 @@ PROVIDERS = [
     {"name": "GLO Nigeria", "provider_code": "GLO", "description": "GLO Nigeria VAS provider", "is_active": True},
     {"name": "Airtel Nigeria", "provider_code": "AIRTEL", "description": "Airtel Nigeria VAS provider", "is_active": True},
     {"name": "9Mobile Nigeria", "provider_code": "9MOBILE", "description": "9Mobile Nigeria VAS provider", "is_active": True},
+    {"name": "Payvantage", "provider_code": "PAYVANTAGE", "description": "Payvantage VAS provider", "is_active": True},
+    {"name": "CreditSwitch", "provider_code": "CREDITSWITCH", "description": "CreditSwitch VAS provider", "is_active": True},
 ]
 
 CATEGORIES = [

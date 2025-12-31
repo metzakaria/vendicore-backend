@@ -1,0 +1,106 @@
+# =========================
+# DEFAULT LOGGING CONFIG
+# =========================
+x-logging: &default_logging
+  driver: "json-file"
+  options:
+    max-size: "20m"
+    max-file: "2"
+
+# =========================
+# DEFAULT BASE API
+# =========================
+x-api-base: &api_base
+  build:
+    context: ./api
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  env_file:
+    - ./api/.env
+  command: >
+    gunicorn config.wsgi:application
+    --bind 0.0.0.0:8000
+    --workers 2
+    --worker-class gevent
+    --log-level info
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  logging: *default_logging
+  network_mode: bridge
+  #depends_on:
+  #  - migrate
+
+services:
+  # =========================
+  # API INSTANCES (MULTI-PORT)
+  # =========================
+  vendicore-api-1:
+    <<: *api_base
+    ports:
+      - "8001:8000"
+
+  vendicore-api-2:
+    <<: *api_base
+    ports:
+      - "8002:8000"
+
+  vendicore-api-3:
+    <<: *api_base
+    ports:
+      - "8003:8000"
+
+  vendicore-api-4:
+    <<: *api_base
+    ports:
+      - "8004:8000"
+
+  # =========================
+  # DATABASE MIGRATIONS
+  # =========================
+  migrate:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    command: python manage.py migrate
+    restart: "no"
+    network_mode: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # =========================
+  # CELERY WORKER
+  # =========================
+  celery:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./api/.env
+    command: celery -A config worker --concurrency=1 -l INFO
+    logging: *default_logging
+    network_mode: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+
+
+  # =========================
+  # CELERY BEAT
+  # =========================
+  celery-beat:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./api/.env
+    command: celery -A config beat --scheduler redbeat.RedBeatScheduler -l INFO
+    logging: *default_logging
+    network_mode: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - celery

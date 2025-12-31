@@ -2,6 +2,8 @@
 from pathlib import Path
 import os 
 import datetime
+from datetime import timedelta
+from celery.schedules import crontab
 from dotenv import load_dotenv
 # Load variables from the .env file
 load_dotenv()
@@ -119,12 +121,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': os.environ.get('LOG_FILE_PATH'),
-            #'filename': '/var/log/sonite-vas/api.log',
-            'formatter': 'verbose',
-        },
+        #'file': {
+        #    'class': 'logging.FileHandler',
+        #    #'filename': os.environ.get('LOG_FILE_PATH'),
+        #    'filename': 'logs/api.log',
+        #    'formatter': 'verbose',
+        #},
        # 'celery': {
        #     'class': 'logging.FileHandler',
        #     'filename': 'debug2.log',
@@ -133,7 +135,7 @@ LOGGING = {
     },
     
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console'],
         'level': 'INFO',
     },
     
@@ -202,6 +204,17 @@ CELERY_RESULT_BACKEND = os.environ.get('CELERY_BROKER_URL')
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 #CELERYD_HIJACK_ROOT_LOGGER = False
 
+redbeat_redis_url = os.getenv("CELERY_BROKER_URL")
+beat_scheduler = "redbeat.RedBeatScheduler"
+
+
+CELERY_BEAT_SCHEDULE = {
+    "reverse-timeout-transactions-every-minute": {
+        "task": "apps.product.task.cron_reverse_timeout_unreversed_transaction",
+        "schedule": crontab(minute="*/7"),  # every 1 minute
+    },
+}
+
 #=============== CACHE CONFIGURATION ==================#
 # Configure cache for multi-instance deployment
 # Uses Redis for production, falls back to local memory cache for development
@@ -225,7 +238,7 @@ if REDIS_URL:
                     'IGNORE_EXCEPTIONS': True,  # Don't fail if Redis is down
                     #'PARSER_CLASS': 'redis.connection.HiredisParser',  # Faster parsing (optional)
                 },
-                'KEY_PREFIX': 'telko_vas',
+                'KEY_PREFIX': 'vendicore_vas',
                 'TIMEOUT': 300,  # 5 minutes default
             }
         }
@@ -235,7 +248,7 @@ if REDIS_URL:
             'default': {
                 'BACKEND': 'django.core.cache.backends.redis.RedisCache',
                 'LOCATION': REDIS_URL,
-                'KEY_PREFIX': 'telko_vas',
+                'KEY_PREFIX': 'vendicore_vas',
                 'TIMEOUT': 300,
             }
         }

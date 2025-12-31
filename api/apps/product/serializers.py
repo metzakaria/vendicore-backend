@@ -25,7 +25,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Transaction
-        fields = ['amount','description', 'beneficiary_account', 'product_code','merchant_ref','created_at']
+        fields = ['amount','description', 'beneficiary_account', 'product_code','merchant_ref','status','balance_after','is_reverse','created_at']
 
 
 class ValidateVendDataSerializer(serializers.Serializer):
